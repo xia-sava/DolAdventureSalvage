@@ -1,0 +1,10 @@
+{
+  "name": "DolAsUtil",
+  "version": "0.1.0",
+  "description": "(とりあえず)",
+  "devDependencies": {
+    "request": "*",
+    "cheerio": "*",
+    "iconv": "*"
+  }
+}
