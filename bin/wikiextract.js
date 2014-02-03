@@ -31,10 +31,10 @@ request(
             var place  = $(this).children(0).html().split('<br class="spacer">').join(',');
             var name   = $(this).children(1).text();
             var desc   = $(this).children(2).text();
-            var skill  = $(this).children(3).text().replace(/ /g, ',');
+            var skill  = $(this).children(3).text().replace(/[ 　]/g, ',');
             var target = $(this).children(5).text();
             var QType  = $(this).parent().parent().parent().prev().children('a:first-child').text();
-            console.log(['???', target, QType, name, desc, place, skill, '', '', 0, '', '', added, '-', 0, 0].join('\t'));
+            console.log(['DType', target, QType, name, desc, place, skill, '-', '-', '0', '-', '-', added, '-', '0', '0'].join('\t'));
         });
 
         // 遺跡ダンジョン
@@ -42,7 +42,7 @@ request(
             var name   = $(this).children(0).text() + ' ' + $(this).children(1).text();
             var desc   = $(this).children(0).text() + ' ' + $(this).children(1).text();
             var target = $(this).children(2).text();
-            console.log(['???', target, '遺跡ダンジョン', name, desc, '遺跡ダンジョン', '-', '', '', 0, '', '', added, '-', 0, 0].join('\t'));
+            console.log(['DType', target, '遺跡', '-', desc, '-', '-', '-', '-', 0, '-', '-', added, '-', '0', '0'].join('\t'));
         });
 
         // 釣り
@@ -52,7 +52,7 @@ request(
             var skill  = '釣り' + $(this).children(2).text();
             var rank   = $(this).children(3).text();
             var exp    = $(this).children(4).text().match(/経験値?(?:　|\s)*(\d+)/) ? RegExp.$1 : 0;
-            console.log(['海洋生物', target, '釣り', '-', desc, '-', skill, '-', rank, exp, '', '', added, '-', exp, exp].join('\t'));
+            console.log(['海洋生物', target, '釣り', '-', desc, '-', skill, '-', rank, exp, '-', '-', added, '-', exp, exp].join('\t'));
         });
 
         // クエスト
@@ -60,7 +60,7 @@ request(
             var place = $(this).children(0).html().split('<br class="spacer">').join(',');
             var name  = $(this).children(1).text();
             var url   = $(this).children(1).children('a').attr('href');
-            var skill = $(this).children(2).text().replace(/ /g, ',');
+            var skill = $(this).children(2).text().replace(/[ 　]/g, ',');
 
             request(
                 {
@@ -83,13 +83,13 @@ request(
                                 var reward = $("th:contains('前金／報酬') + td").text().split('／')[1];
                                 var dscstr = $("th:contains('発見・獲得物') + td").text();
 
-                                var DType  = dscstr.match(/(?:^|\s*)(.+?)(?:｢|「).+?(?:｣|」)/) ? RegExp.$1 : '';
-                                var target = dscstr.match(/(?:^|\s*).+?(?:｢|「)(.+?)(?:｣|」)/) ? RegExp.$1 : '';
-                                var exp    = dscstr.match(/経験値?(?:　|\s)*(\d+)/) ? RegExp.$1 : '';
+                                var DType  = dscstr.match(/(?:^|\s*)(.+?)(?:｢|「).+?(?:｣|」)/) ? RegExp.$1 : '-';
+                                var target = dscstr.match(/(?:^|\s*).+?(?:｢|「)(.+?)(?:｣|」)/) ? RegExp.$1 : '-';
+                                var exp    = dscstr.match(/経験値?(?:　|\s)*(\d+)/) ? RegExp.$1 : '-';
                                 var point  = dscstr.match(/カードランク\s*(\d+)/) ? RegExp.$1 : 0;
-                                var item   = '';
+                                var item   = '-';
 
-                                console.log([DType, target, '冒険クエ', name, '-', place, skill, reward, rank, exp, item, '', added, point, exp, exp].join('\t'));
+                                console.log([DType, target, '冒険クエ', name, '-', place, skill, reward, rank, exp, item, '-', added, point, exp, exp].join('\t'));
                             }
                         );
                     }
