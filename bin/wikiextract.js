@@ -46,13 +46,21 @@ request(
         });
 
         // 釣り
-        $("td").filter(function () {return $(this).text() == '海域';}).closest('table').find('tbody > tr').each(function () {
+        $("td").filter(function () {return $(this).text() == '釣りR';}).closest('table').find('tbody > tr').each(function () {
             var desc   = $(this).children(0).text();
             var target = $(this).children(1).text();
             var skill  = '釣り' + $(this).children(2).text();
             var rank   = $(this).children(3).text();
             var exp    = $(this).children(4).text().match(/経験値?(?:　|\s)*(\d+)/) ? RegExp.$1 : 0;
             console.log(['海洋生物', target, '釣り', '-', desc, '-', skill, '-', rank, exp, '-', '-', added, '-', exp, exp].join('\t'));
+        });
+
+        // 天体
+        $("td").filter(function () {return $(this).text() == '時間帯';}).closest('table').find('tbody > tr').each(function () {
+            var desc   = $(this).children(0).text().split(/[ ,、　]/).join(',');
+            var target = $(this).children(1).text();
+            var rank   = $(this).children(3).text();
+            console.log(['地理', target, '釣り', '-', desc + ' (種別:天文) (スキル:天文学)', '-', '-', '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
         });
 
         // クエスト
