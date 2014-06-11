@@ -23,8 +23,9 @@ request(
         var conv = new iconv.Iconv('EUC-JP', 'UTF-8//TRANSLIT//IGNORE');
         var $ = cheerio.load(conv.convert(body).toString());
 
-        var added = $("li:contains('ここでは')").text().match(/ここでは(\d+)年(\d+)月(\d+)日のアップデートにおいて/) ?
-            RegExp.$1 + '/' + RegExp.$2 + '/' + RegExp.$3 + '+α' : '';
+        //var added = $("li:contains('ここでは')").text().match(/ここでは(\d+)年(\d+)月(\d+)日のアップデートにおいて/) ?
+        //    RegExp.$1 + '/' + RegExp.$2 + '/' + RegExp.$3 + '+α' : '';
+        var added = '2012/09/20+α';
 
         // 地図
         $("td").filter(function () {return $(this).text() == '書庫';}).closest('table').find('tbody > tr').each(function () {
