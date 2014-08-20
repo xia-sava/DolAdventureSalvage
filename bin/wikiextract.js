@@ -32,10 +32,23 @@ request(
             var place  = $(this).children(0).html().split('<br class="spacer">').join(',');
             var name   = $(this).children(1).text();
             var desc   = $(this).children(2).text();
-            var skill  = $(this).children(3).text().replace(/[ 　]/g, ',');
+            var skill  = $(this).children(3).text().replace(/[ 　・]/g, ',');
             var target = $(this).children(5).text();
             var QType  = $(this).parent().parent().parent().prev().children('a:first-child').text();
-            console.log(['DType', target, QType, name, desc, place, skill, '-', '-', '0', '-', '-', added, '-', '0', '0'].join('\t'));
+            var url   = $(this).children(1).children('a').attr('href');
+            request(
+                {
+                    uri:      url,
+                    encoding: null,
+                },
+                function (error, response, body) {
+                  var $ = cheerio.load(conv.convert(body).toString());
+                  var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
+                  var DType  = $("th:contains('発見物') + td").text().split('／')[0];
+
+                  console.log([DType, target, QType, name, desc, place, skill, '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+                }
+            );
         });
 
         // 遺跡ダンジョン
@@ -61,7 +74,7 @@ request(
             var desc   = $(this).children(0).text().split(/[ ,、　]/).join(',');
             var target = $(this).children(1).text();
             var rank   = $(this).children(3).text();
-            console.log(['地理', target, '釣り', '-', desc + ' (種別:天文) (スキル:天文学)', '-', '-', '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+            console.log(['天文', target, '天体観測', '-', desc + '', '-', '-', '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
         });
 
         // クエスト
@@ -77,31 +90,12 @@ request(
                     encoding: null,
                 },
                 function (error, response, body) {
-                    var $ = cheerio.load(conv.convert(body).toString());
-                    var link = $("a:contains('"+name+"')");
-                    if (link) {
-                        var url = 'http://www.umiol.com' + link.attr('href');
-                        request(
-                            {
-                                uri:      url,
-                                encoding: null,
-                            },
-                            function (error, response, body) {
-                                var $ = cheerio.load(conv.convert(body).toString());
-                                var rank   = $("th:contains('難易度') + td").text();
-                                var reward = $("th:contains('前金／報酬') + td").text().split('／')[1];
-                                var dscstr = $("th:contains('発見・獲得物') + td").text();
+                  var $ = cheerio.load(conv.convert(body).toString());
+                  var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
+                  var DType  = $("th:contains('発見物') + td").text().split('／')[0];
+                  var target = $("th:contains('発見物') + td").text().split('／')[1];
 
-                                var DType  = dscstr.match(/(?:^|\s*)(.+?)(?:｢|「).+?(?:｣|」)/) ? RegExp.$1 : '-';
-                                var target = dscstr.match(/(?:^|\s*).+?(?:｢|「)(.+?)(?:｣|」)/) ? RegExp.$1 : '-';
-                                var exp    = dscstr.match(/経験値?(?:　|\s)*(\d+)/) ? RegExp.$1 : '-';
-                                var point  = dscstr.match(/カードランク\s*(\d+)/) ? RegExp.$1 : 0;
-                                var item   = '-';
-
-                                console.log([DType, target, '冒険クエ', name, '-', place, skill, reward, rank, exp, item, '-', added, point, exp, exp].join('\t'));
-                            }
-                        );
-                    }
+                  console.log([DType, target, '冒険クエ', name, '-', place, skill, 0, rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
                 }
             );
         });
