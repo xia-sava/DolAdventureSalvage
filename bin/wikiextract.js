@@ -33,22 +33,27 @@ request(
             var name   = $(this).children(1).text();
             var desc   = $(this).children(2).text();
             var skill  = $(this).children(3).text().replace(/[ 　・]/g, ',');
+            var rank   = $(this).children(4).text();
             var target = $(this).children(5).text();
             var QType  = $(this).parent().parent().parent().prev().children('a:first-child').text();
             var url   = $(this).children(1).children('a').attr('href');
-            request(
-                {
-                    uri:      url,
-                    encoding: null,
-                },
-                function (error, response, body) {
-                  var $ = cheerio.load(conv.convert(body).toString());
-                  var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
-                  var DType  = $("th:contains('発見物') + td").text().split('／')[0];
+            if (url) {
+                request(
+                    {
+                        uri:      url,
+                        encoding: null,
+                    },
+                    function (error, response, body) {
+                      var $ = cheerio.load(conv.convert(body).toString());
+                      var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
+                      var DType  = $("th:contains('発見物') + td").text().split('／')[0];
 
-                  console.log([DType, target, QType, name, desc, place, skill, '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
-                }
-            );
+                      console.log([DType, target, QType, name, desc, place, skill, '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+                    }
+                );
+            } else {
+                console.log(['DType', target, QType, name, desc, place, skill, '-', rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+            }
         });
 
         // 遺跡ダンジョン
