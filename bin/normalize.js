@@ -116,119 +116,126 @@ process.stdin.on('data', function (chunk) {
   if (chunk == "") {
     return;
   }
+  var linenum = 0;
   var lines = chunk.split("\n");
   lines[0] = fragment + lines[0];
   fragment = lines.pop();
   lines.forEach(function (line) {
-    if (line.match(/^$|^format   ver|^database ver|^#|^\S*\t____DELETED_DATA____/)) {
-      console.log(line);
-      return;
-    }
-
-    var record = line.split("\t");
-    var notes = {};
-
-    // 発見物タイプ
-    var dtype = record[csvformat.DType];
-    if (_.has(cst.replacements.dtype, dtype)) {
-      record[0] = cst.replacements.dtype[dtype];
-      notes['発見物'] = [dtype];
-    }
-
-    // クエストタイプ
-    var qtype = record[csvformat.QType];
-    if (_.has(cst.replacements.qtype, qtype)) {
-      record[csvformat.QType] = cst.replacements.qtype[qtype];
-      notes['種別'] = [qtype];
-    }
-
-    // スキル
-    var skills = [];
-    if (record[csvformat.skill].match(/^([^,\s　、]+\d+)*[^,\s　、]+\d*$/)) {
-      record[csvformat.skill] = record[csvformat.skill].replace(/(\d+)/g, "$1,").replace(/,$/, "");
-    }
-    _.each(record[csvformat.skill].split(/[,\s　、]/), function (v, k) {
-      if (! v.match(/^(\D+)(\d*)$/)) {
-        skills.push("**" + v);
+    ++linenum;
+    try {
+      if (line.match(/^$|^format   ver|^database ver|^#|^\S*\t____DELETED_DATA____/)) {
+        console.log(line);
         return;
       }
-      var s = v.match(/^(\D+)(\d*)$/)[1];
-      var r = v.match(/^(\D+)(\d*)$/)[2];
-      if (s.match(/^(-|なし)$/)) {
-        skills.push("-");
-        return;
-      }
-      // スキル一覧にないスキルかどうかをチェック
-      if (_.indexOf(cst.skills, s) < 0) {
-        // よくある間違いは修正，エラーならマーキング
-        if (_.has(cst.corrections.skill, s)) {
-          s = cst.corrections.skill[s];
-        } else {
-          s = "**" + s;
-        }
-      }
-      // スキルランク有無
-      if (_.indexOf(cst.nr_skills, s) >= 0 && r.length > 0) {
-        r = '';
-      } else if (_.indexOf(cst.nr_skills, s) < 0 && r.length == 0) {
-        if (record[csvformat.QType] == "冒険クエ") {
-          r = "**";
-        } else {
-          r = (record[csvformat.rank] > 0) ? record[csvformat.rank] : '';
-        }
-      }
-      // 新スキル名置換
-      if (_.has(cst.replacements.skill, s)) {
-        if (!_.has(notes, 'スキル')) {
-          notes['スキル'] = [];
-        }
-        notes['スキル'].push(s);
-        s = cst.replacements.skill[s];
-      }
-      skills.push(s + r);
-    });
-    record[csvformat.skill] = skills.join(',');
 
-    // 場所
-    var places = [];
-    _.each(record[csvformat.place].split(/[,\s　、]/), function (v) {
-      if (v.match(/^-$/)) {
-        places.push("-");
-        return;
-      }
-      // 街一覧にない街かどうかをチェック
-      if (_.indexOf(cst.places, v) < 0) {
-        // よくある間違いは修正，エラーならマーキング
-        if (_.has(cst.corrections.place, v)) {
-          v = cst.corrections.place[v];
-        } else {
-          v = "**" + v;
-        }
-      }
-      // 新街名置換
-      if (_.has(cst.replacements.place, v)) {
-        if (!_.has(notes, '場所')) {
-          notes['場所'] = [];
-        }
-        notes['場所'].push(v);
-        v = cst.replacements.place[v];
-      }
-      places.push(v);
-    });
-    record[csvformat.place] = places.join(',');
+      var record = line.split("\t");
+      var notes = {};
 
-    // 置換情報メモを追加
-    var note = _.map(notes, function (values, key) {
-      return "(" + key + ":" + values.join(",") + ")";
-    }).join(" ");
-    if (note) {
-      if (record[csvformat.desc] == '-') {
-        record[csvformat.desc] = '';
+      // 発見物タイプ
+      var dtype = record[csvformat.DType];
+      if (_.has(cst.replacements.dtype, dtype)) {
+        record[0] = cst.replacements.dtype[dtype];
+        notes['発見物'] = [dtype];
       }
-      record[csvformat.desc] += " " + note;
+
+      // クエストタイプ
+      var qtype = record[csvformat.QType];
+      if (_.has(cst.replacements.qtype, qtype)) {
+        record[csvformat.QType] = cst.replacements.qtype[qtype];
+        notes['種別'] = [qtype];
+      }
+
+      // スキル
+      var skills = [];
+      if (record[csvformat.skill].match(/^([^,\s　、]+\d+)*[^,\s　、]+\d*$/)) {
+        record[csvformat.skill] = record[csvformat.skill].replace(/(\d+)/g, "$1,").replace(/,$/, "");
+      }
+      _.each(record[csvformat.skill].split(/[,\s　、]/), function (v, k) {
+        if (! v.match(/^(\D+)(\d*)$/)) {
+          skills.push("**" + v);
+          return;
+        }
+        var s = v.match(/^(\D+)(\d*)$/)[1];
+        var r = v.match(/^(\D+)(\d*)$/)[2];
+        if (s.match(/^(-|なし)$/)) {
+          skills.push("-");
+          return;
+        }
+        // スキル一覧にないスキルかどうかをチェック
+        if (_.indexOf(cst.skills, s) < 0) {
+          // よくある間違いは修正，エラーならマーキング
+          if (_.has(cst.corrections.skill, s)) {
+            s = cst.corrections.skill[s];
+          } else {
+            s = "**" + s;
+          }
+        }
+        // スキルランク有無
+        if (_.indexOf(cst.nr_skills, s) >= 0 && r.length > 0) {
+          r = '';
+        } else if (_.indexOf(cst.nr_skills, s) < 0 && r.length == 0) {
+          if (record[csvformat.QType] == "冒険クエ") {
+            r = "**";
+          } else {
+            r = (record[csvformat.rank] > 0) ? record[csvformat.rank] : '';
+          }
+        }
+        // 新スキル名置換
+        if (_.has(cst.replacements.skill, s)) {
+          if (!_.has(notes, 'スキル')) {
+            notes['スキル'] = [];
+          }
+          notes['スキル'].push(s);
+          s = cst.replacements.skill[s];
+        }
+        skills.push(s + r);
+      });
+      record[csvformat.skill] = skills.join(',');
+
+      // 場所
+      var places = [];
+      _.each(record[csvformat.place].split(/[,\s　、]/), function (v) {
+        if (v.match(/^-$/)) {
+          places.push("-");
+          return;
+        }
+        // 街一覧にない街かどうかをチェック
+        if (_.indexOf(cst.places, v) < 0) {
+          // よくある間違いは修正，エラーならマーキング
+          if (_.has(cst.corrections.place, v)) {
+            v = cst.corrections.place[v];
+          } else {
+            v = "**" + v;
+          }
+        }
+        // 新街名置換
+        if (_.has(cst.replacements.place, v)) {
+          if (!_.has(notes, '場所')) {
+            notes['場所'] = [];
+          }
+          notes['場所'].push(v);
+          v = cst.replacements.place[v];
+        }
+        places.push(v);
+      });
+      record[csvformat.place] = places.join(',');
+
+      // 置換情報メモを追加
+      var note = _.map(notes, function (values, key) {
+        return "(" + key + ":" + values.join(",") + ")";
+      }).join(" ");
+      if (note) {
+        if (record[csvformat.desc] == '-') {
+          record[csvformat.desc] = '';
+        }
+        record[csvformat.desc] += " " + note;
+      }
+
+      console.log(record.join("\t"));
+    } catch (e) {
+      console.error("Line: " + linenum + ":" + e);
+      throw e;
     }
-
-    console.log(record.join("\t"));
   });
 });
 

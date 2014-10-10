@@ -100,7 +100,11 @@ request(
                   var DType  = $("th:contains('発見物') + td").text().split('／')[0];
                   var target = $("th:contains('発見物') + td").text().split('／')[1];
 
-                  console.log([DType, target, '冒険クエ', name, '-', place, skill, 0, rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+                  if (!DType.match(/\n/) && target != '') {
+                    console.log([DType, target, '冒険クエ', name, '-', place, skill, 0, rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+                  } else {
+                    console.error("クエスト「" + name + "」の情報が未入力のようです");
+                  }
                 }
             );
         });
