@@ -29,7 +29,7 @@ request(
 
         // 地図
         $("td").filter(function () {return $(this).text() == '書庫';}).closest('table').find('tbody > tr').each(function () {
-            var place  = $(this).children(0).html().split('<br class="spacer">').join(',');
+            var place = $('<div/>').html($(this).children(0).html().replace(/<br class="spacer">/g, ',')).text();
             var name   = $(this).children(1).text();
             var desc   = $(this).children(2).text();
             var skill  = $(this).children(3).text().replace(/[ 　・]/g, ',');
@@ -84,29 +84,31 @@ request(
 
         // クエスト
         $("h4:contains('既存港') + div, h4:contains('追加港') + div").find("table > tbody > tr").each(function () {
-            var place = $(this).children(0).html().split('<br class="spacer">').join(',');
+            var place = $('<div/>').html($(this).children(0).html().replace(/<br class="spacer">/g, ',')).text();
             var name  = $(this).children(1).text();
             var url   = $(this).children(1).children('a').attr('href');
             var skill = $(this).children(2).text().replace(/[ 　]/g, ',');
 
-            request(
-                {
-                    uri:      url,
-                    encoding: null,
-                },
-                function (error, response, body) {
-                  var $ = cheerio.load(conv.convert(body).toString());
-                  var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
-                  var DType  = $("th:contains('発見物') + td").text().split('／')[0];
-                  var target = $("th:contains('発見物') + td").text().split('／')[1];
+            if (url) {
+              request(
+                  {
+                      uri:      url,
+                      encoding: null,
+                  },
+                  function (error, response, body) {
+                    var $ = cheerio.load(conv.convert(body).toString());
+                    var rank   = $("th:contains('難易度') + td").text().match(/(\d+)/)[1];
+                    var DType  = $("th:contains('発見物') + td").text().split('／')[0];
+                    var target = $("th:contains('発見物') + td").text().split('／')[1];
 
-                  if (!DType.match(/\n/) && target != '') {
-                    console.log([DType, target, '冒険クエ', name, '-', place, skill, 0, rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
-                  } else {
-                    console.error("クエスト「" + name + "」の情報が未入力のようです");
+                    if (!DType.match(/\n/) && target != '') {
+                      console.log([DType, target, '冒険クエ', name, '-', place, skill, 0, rank, '-', '-', '-', added, '-', '-', '-'].join('\t'));
+                    } else {
+                      console.error("クエスト「" + name + "」の情報が未入力のようです");
+                    }
                   }
-                }
-            );
+              );
+            }
         });
     }
 );
