@@ -2,9 +2,14 @@
   "name": "DolAsUtil",
   "version": "0.1.0",
   "description": "(とりあえず)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xia-sava/DolAdventureSalvage.git"
+  },
   "devDependencies": {
     "request": "*",
     "cheerio": "*",
-    "iconv": "*"
+    "iconv": "*",
+    "underscore": "*"
   }
 }
