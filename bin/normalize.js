@@ -6,7 +6,12 @@ process.stdin.resume();
 process.stdin.setEncoding('utf8');
 
 var cst = {
-  "skills" : [
+  "type" : [
+    "-", "史跡", "宗教建築", "歴史遺物", "宗教遺物", "美術品", "財宝", "化石",
+    "植物", "虫類", "鳥類", "小型生物", "中型生物", "大型生物", "海洋生物",
+    "港・集落", "地理", "天文",
+  ],
+  "skill" : [
     "補給", "操帆", "測量", "釣り", "酒宴", "駆除", "救助", "探索", "視認", "観察",
     "開錠", "採集", "調達", "行軍", "生存", "考古学", "宗教学", "財宝鑑定", "美術",
     "地理学", "生態調査", "生物学", "口説き", "機雷発見", "バイオリン演奏", "投てき術",
@@ -30,7 +35,7 @@ var cst = {
     "モン・クメール諸語", "ナワトル語", "オセアニア諸語", "ケチュア語", "北米諸語",
     "日本語", "中国語", "朝鮮語", "極北諸語",
   ],
-  "nr_skills" : [
+  "nr_skill" : [
     "駆除", "観察", "バイオリン演奏",
     "逃走", "接舷", "疾病学", "援軍要請", "海軍護衛要請",
 
@@ -41,7 +46,7 @@ var cst = {
     "モン・クメール諸語", "ナワトル語", "オセアニア諸語", "ケチュア語", "北米諸語",
     "日本語", "中国語", "朝鮮語", "極北諸語",
   ],
-  "places" : [
+  "place" : [
     "アテネ", "アデン", "アムステルダム", "アレクサンドリア", "イスタンブール",
     "ヴェネツィア", "カリカット", "ケープ", "ザンジバル", "サンジョルジュ", "サンティアゴ",
     "サントドミンゴ", "ジャカルタ", "ジェノヴァ", "ストックホルム", "セビリア", "チュニス",
@@ -50,7 +55,7 @@ var cst = {
     "北米商界開拓街",
     "サンクトペテルブルク", "サンフランシスコ",
   ],
-  "replacements": {
+  "replacement": {
     "dtype": {
       "天文" : "地理",
     },
@@ -67,7 +72,11 @@ var cst = {
       "サンフランシスコ"     : "北米商界開拓街",
     },
   },
-  "corrections": {
+  "correction": {
+    "type": {
+      "遺跡"               : "史跡",
+      "宗教遺跡"           : "宗教建築",
+    },
     "skill": {
       "探検"               : "探索",
       "生態"               : "生態調査",
@@ -113,6 +122,25 @@ var csvformat = {
   exp3:   15,
 };
 
+// 全角半角変換
+var zen2han = function (v) {
+  return v.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {
+    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+  });
+};
+
+// よくある間違いは修正，エラーならマーキング
+var correct = function (type, value) {
+  if (_.indexOf(cst[type], value) < 0) {
+    if (_.has(cst.correction[type], value)) {
+      value = cst.correction[type][value];
+    } else {
+      value = "**" + value;
+    }
+  }
+  return value;
+};
+
 var fragment = "";
 process.stdin.on('data', function (chunk) {
   if (chunk == "") {
@@ -135,20 +163,31 @@ process.stdin.on('data', function (chunk) {
 
       // 発見物タイプ
       var dtype = record[csvformat.DType];
-      if (_.has(cst.replacements.dtype, dtype)) {
-        record[0] = cst.replacements.dtype[dtype];
+      record[csvformat.DType] = correct('type', dtype);
+      if (_.has(cst.replacement.dtype, dtype)) {
+        record[0] = cst.replacement.dtype[dtype];
         notes['発見物'] = [dtype];
       }
 
       // クエストタイプ
       var qtype = record[csvformat.QType];
-      if (_.has(cst.replacements.qtype, qtype)) {
-        record[csvformat.QType] = cst.replacements.qtype[qtype];
+      if (_.has(cst.replacement.qtype, qtype)) {
+        record[csvformat.QType] = cst.replacement.qtype[qtype];
         notes['種別'] = [qtype];
+      }
+
+      // ランク
+      record[csvformat.rank] = zen2han(record[csvformat.rank]);
+      if (record[csvformat.rank] == '') {
+        record[csvformat.rank] = "0";
+      }
+      if (! record[csvformat.rank].match(/^[0-9]+$/)) {
+        record[csvformat.rank] = "**" + record[csvformat.rank];
       }
 
       // スキル
       var skills = [];
+      record[csvformat.skill] = zen2han(record[csvformat.skill]);
       if (record[csvformat.skill].match(/^([^,\s　、]+\d+)*[^,\s　、]+\d*$/)) {
         record[csvformat.skill] = record[csvformat.skill].replace(/(\d+)/g, "$1,").replace(/,$/, "");
       }
@@ -163,19 +202,12 @@ process.stdin.on('data', function (chunk) {
           skills.push("-");
           return;
         }
-        // スキル一覧にないスキルかどうかをチェック
-        if (_.indexOf(cst.skills, s) < 0) {
-          // よくある間違いは修正，エラーならマーキング
-          if (_.has(cst.corrections.skill, s)) {
-            s = cst.corrections.skill[s];
-          } else {
-            s = "**" + s;
-          }
-        }
+        // よくある間違いは修正，エラーならマーキング
+        s = correct('skill', s);
         // スキルランク有無
-        if (_.indexOf(cst.nr_skills, s) >= 0 && r.length > 0) {
+        if (_.indexOf(cst.nr_skill, s) >= 0 && r.length > 0) {
           r = '';
-        } else if (_.indexOf(cst.nr_skills, s) < 0 && r.length == 0) {
+        } else if (_.indexOf(cst.nr_skill, s) < 0 && r.length == 0) {
           if (record[csvformat.QType] == "冒険クエ") {
             r = "**";
           } else {
@@ -183,12 +215,12 @@ process.stdin.on('data', function (chunk) {
           }
         }
         // 新スキル名置換
-        if (_.has(cst.replacements.skill, s)) {
+        if (_.has(cst.replacement.skill, s)) {
           if (!_.has(notes, 'スキル')) {
             notes['スキル'] = [];
           }
           notes['スキル'].push(s);
-          s = cst.replacements.skill[s];
+          s = cst.replacement.skill[s];
         }
         skills.push(s + r);
       });
@@ -201,22 +233,15 @@ process.stdin.on('data', function (chunk) {
           places.push("-");
           return;
         }
-        // 街一覧にない街かどうかをチェック
-        if (_.indexOf(cst.places, v) < 0) {
-          // よくある間違いは修正，エラーならマーキング
-          if (_.has(cst.corrections.place, v)) {
-            v = cst.corrections.place[v];
-          } else {
-            v = "**" + v;
-          }
-        }
+        // よくある間違いは修正，エラーならマーキング
+        v = correct('place', v);
         // 新街名置換
-        if (_.has(cst.replacements.place, v)) {
+        if (_.has(cst.replacement.place, v)) {
           if (!_.has(notes, '場所')) {
             notes['場所'] = [];
           }
           notes['場所'].push(v);
-          v = cst.replacements.place[v];
+          v = cst.replacement.place[v];
         }
         places.push(v);
       });
