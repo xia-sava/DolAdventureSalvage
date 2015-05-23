@@ -185,6 +185,13 @@ process.stdin.on('data', function (chunk) {
         record[csvformat.rank] = "**" + record[csvformat.rank];
       }
 
+      // 陸地再調査報酬地図
+      if (record[csvformat.desc].match(/(<調査報酬:(.+)>)/)) {
+        notes['調査報酬'] = [RegExp.$2];
+        record[csvformat.desc] = record[csvformat.desc].replace(RegExp.$1, '');
+        record[csvformat.place] = 'ロンドン';
+      }
+
       // スキル
       var skills = [];
       record[csvformat.skill] = zen2han(record[csvformat.skill]);
